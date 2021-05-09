@@ -1,5 +1,6 @@
 %{
-  "ari": {:git, "https://github.com/libreearth/ari.git", "83d8889b3aac19cfb13eb4819e13d3a32255a747", []},
+  "ari": {:git, "https://github.com/libreearth/ari.git", "2c74bb25dbf9de72b24b94c6b10a45de7c5aeec4", []},
+  "b64fast": {:git, "https://github.com/ArweaveTeam/b64fast.git", "a0ef55ec66ecf705848716c195bf45665f78818a", [ref: "a0ef55ec66ecf705848716c195bf45665f78818a"]},
   "erl2ex": {:hex, :erl2ex, "0.0.9", "626cbdf8a23f44b8a70be2ae0c8892fd9c1b14eacb8fe94491bcc88a1c2bd7ae", [:mix], [], "hexpm", "4e49c461ecffc33986bb72a43ae87211fb33fed39077fb522c381b884d189514"},
   "jiffy": {:hex, :jiffy, "1.0.8", "60e36f00be35e5ac6e6cf2d4caf3bdf3103d4460aff385f543a8d7df2d6d9613", [:rebar3], [], "hexpm", "f9ae986ba5a0854eb48cf6a76192d9367086da86c20197da430630be7c087a4e"},
 }
