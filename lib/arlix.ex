@@ -41,9 +41,4 @@ defmodule Arlix do
       signature: String.t,
       reward: integer)
   end
-
-  def new_wallet() do
-    :ar_wallet.new()
-  end
-
 end
