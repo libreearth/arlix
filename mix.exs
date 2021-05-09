@@ -23,7 +23,7 @@ defmodule Arlix.MixProject do
     [
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"},
-      {:erl2ex, ">= 0.0.9", only: :dev}
+      {:ari, github: 'libreearth/ari'}
     ]
   end
 end
