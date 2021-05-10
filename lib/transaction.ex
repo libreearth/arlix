@@ -20,7 +20,7 @@ defmodule Arlix.Transaction do
   end
 
   def sign(transaction, priv, pub) do
-    :ar_tx.sign(transaction, priv, pub)
+    :ar_tx.sign_v1(transaction, priv, pub)
   end
 
   def get_addresses(transactions) do
