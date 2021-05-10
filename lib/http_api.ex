@@ -3,6 +3,11 @@ defmodule Arlix.HttpApi do
   alias Arlix.Wallet
   alias Arlix.Transaction
 
+  @doc """
+  Gets data upload price of a size of `size_bytes`
+
+  Returns an integer with the cost in Winstons
+  """
   def get_data_tx_price(size_bytes, ar_node \\ @default_node) do
     case HTTPoison.get("#{ar_node}/price/#{size_bytes}") do
       {:ok, response} ->
@@ -11,6 +16,12 @@ defmodule Arlix.HttpApi do
     end
   end
 
+  @doc """
+  Gets last transaction from a wallet. To obtain a new  `wallet_map` just call `Arlix.Wallet.new_wallet_map()`
+  otherwise if you have a key file from arweave the wallet can be obtain `File.read!("key_file.json") |> Arlix.Wallet.from_json()`
+
+  Returns the last transacion id
+  """
   def get_wallet_last_tx(wallet_map, ar_node \\ @default_node) do
     wallet_map
     |> wallet_map_to_address()
@@ -26,6 +37,15 @@ defmodule Arlix.HttpApi do
     end
   end
 
+
+  @doc """
+  Uploads data to ArWeave using a data transaction. `data` is the data to be uploaded.
+  To obtain a new  `wallet_map` just call `Arlix.Wallet.new_wallet_map()`,
+  otherwise if you have a key file from arweave the wallet can be obtain
+  `File.read!("key_file.json") |> Arlix.Wallet.from_json()`
+
+  Returns a map with the transaction fields
+  """
   def upload_data(data, wallet_map, ar_node \\ @default_node) do
     price = get_data_tx_price(byte_size(data), ar_node)
     last_tx = get_wallet_last_tx(wallet_map, ar_node)
@@ -46,6 +66,12 @@ defmodule Arlix.HttpApi do
     end
   end
 
+  @doc """
+  Gets the transaction status. `tx_id_base64` can be obtained from the field "id"
+  of the map returned by `upload_data`
+
+  Returns a string describing the transaction status
+  """
   def transaction_status(tx_id_base64, ar_node \\ @default_node) do
     case HTTPoison.get("#{ar_node}/tx/#{tx_id_base64}/status") do
        {:ok, response} -> response.body
@@ -53,6 +79,12 @@ defmodule Arlix.HttpApi do
     end
   end
 
+  @doc """
+  Gets the amount of Winstons in the given `wallet_map`
+  To obtain a new  `wallet_map` just call `Arlix.Wallet.new_wallet_map()`,
+  otherwise if you have a key file from arweave the wallet can be obtain
+  `File.read!("key_file.json") |> Arlix.Wallet.from_json()`
+  """
   def wallet_balance(wallet_map, ar_node \\ @default_node) do
     wallet_address = wallet_map_to_address(wallet_map)
     case HTTPoison.get("#{ar_node}/wallet/#{wallet_address}/balance") do

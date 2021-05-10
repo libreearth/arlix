@@ -24,45 +24,32 @@ defmodule ArlixTest do
     assert true =  Wallet.verify(pub, test_data, signature)
   end
 
-  test "sign transaction" do
-    {priv, pub} = Wallet.new()
-    ### TODO load wallet {{Priv, Pub}, Pub} from file DB
-
-    test_data =
-    """
-    Earth
-    Regeneration
-    Age
-    """
-
-    #unsigned_tx = :ar_tx.new(@test_data)
-    #unsigned_tx = tx(data: test_data)
-    unsigned_tx = tx(tags: [{"Content-Type", "text/plain"}], data: test_data)
-    #IO.inspect unsigned_tx
-    IO.inspect tx(unsigned_tx)
-    #id = tx(unsigned_tx, :id)
-    #IO.inspect id
-
-    #signed_tx = :ar_tx.sign(unsigned_tx, priv, pub)
-
-    ### ar_tx:sign(
-		###			TX#tx {
-		###				last_tx = LastTXid, ### From api:
-		###				reward = Price, ### From api https://github.com/kirecek/elixir-arweave-sdk/blob/3762c88d7c1b1536d766aeeab94238f6c6d51a4a/lib/arweave/transactions.ex#L47
-		###				tags = Tags
-		###			},
-		###			S#state.wallet
-		###		)
-
-    signed_tx = Transaction.sign(unsigned_tx, priv, pub)
-    IO.inspect tx(signed_tx)
-    id = tx(signed_tx, :id)
-
-    ### TODO submit transaction with api https://github.com/kirecek/elixir-arweave-sdk/blob/3762c88d7c1b1536d766aeeab94238f6c6d51a4a/lib/arweave/transactions.ex#L68
-
-    addresses = Transaction.get_addresses([signed_tx])
-
-    #IO.inspect addresses
-
+  test "create wallet" do
+    wall = Wallet.new_wallet_map()
+    assert wall["n"]!=nil
+    assert wall["d"]!=nil
   end
+
+  test "sing data transaction with wallet" do
+    price = 9128374098
+    last_tx = "alisduohociasudofiho8asdfh"
+    data =
+      """
+      Earth
+      Regeneration
+      Age
+      """
+    {{priv, pub}, pub} = Wallet.new()
+    tx_map =
+      Transaction.new(data, price, last_tx)
+      |> Transaction.sign(priv, pub)
+      |> Transaction.to_map()
+
+    assert tx_map["id"] != nil
+    assert tx_map["signature"] != nil
+    assert tx_map["owner"] == Base.url_encode64(pub, padding: false)
+  end
+
+
+
 end

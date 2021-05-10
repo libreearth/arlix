@@ -15,8 +15,11 @@ defmodule Arlix.Wallet do
     :ar_wallet.to_address(pub)
   end
 
-  def to_map(wallet) do
-    {[expnt, pub], [expnt, pub, priv, p1, p2, e1, e2, c]} = wallet
+  def new_wallet_map() do
+    to_map(new())
+  end
+
+  def to_map({[expnt, pub], [expnt, pub, priv, p1, p2, e1, e2, c]}) do
     %{
       "kty" => "RSA",
       "e" => Base.url_encode64(expnt, padding: false),
@@ -27,6 +30,13 @@ defmodule Arlix.Wallet do
       "dp" => Base.url_encode64(e1, padding: false),
       "dq" => Base.url_encode64(e2, padding: false),
       "qi" => Base.url_encode64(c, padding: false)
+    }
+  end
+
+  def to_map({{priv, pub}, pub}) do
+    %{
+      "n" => Base.url_encode64(pub, padding: false),
+      "d" => Base.url_encode64(priv, padding: false),
     }
   end
 
