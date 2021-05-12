@@ -1,7 +1,9 @@
 defmodule Arlix.HttpApi do
-  @default_node "https://arweave.net"
+  import Arlix.Tx
   alias Arlix.Wallet
   alias Arlix.Transaction
+
+  @default_node "https://arweave.net"
 
   @doc """
   Gets data upload price of a size of `size_bytes`
@@ -46,17 +48,28 @@ defmodule Arlix.HttpApi do
 
   Returns a map with the transaction fields
   """
-  def upload_data(data, wallet_map, ar_node \\ @default_node) do
+  def upload_data(data, wallet_map, content_type, ar_node \\ @default_node) do
     price = get_data_tx_price(byte_size(data), ar_node)
     last_tx = get_wallet_last_tx(wallet_map, ar_node)
     pub = wallet_map["n"] |> Base.url_decode64!(padding: false)
     priv = wallet_map["d"] |> Base.url_decode64!(padding: false)
-    tx_map =
-      Transaction.new(data, price, last_tx)
-      |> Transaction.sign(priv,pub)
-      |> Transaction.to_map()
-    tx_text = Jason.encode!(tx_map)
-    case HTTPoison.post("#{ar_node}/tx", tx_text, [{"Accept", "application/json"}, {"Content-Type", "application/json"}]) do
+    create_data_transaction(data, price, last_tx, content_type, priv, pub)
+    |> post_transaction(ar_node)
+  end
+
+  def create_data_transaction(data, price, last_tx, content_type, priv, pub) do
+    Transaction.new(data, price, decode_last_tx(last_tx))
+    |> set_content_type(content_type)
+    |> Transaction.sign(priv,pub)
+    |> Transaction.to_map()
+  end
+
+  defp decode_last_tx(last_tx) do
+    Base.url_decode64!(last_tx, padding: false)
+  end
+
+  def post_transaction(tx_map, ar_node \\ @default_node) do
+    case HTTPoison.post("#{ar_node}/tx", Jason.encode!(tx_map) , [{"Accept", "application/json"}, {"Content-Type", "application/json"}]) do
       {:ok, response} ->
         case response.status_code do
           200 -> tx_map
@@ -64,6 +77,10 @@ defmodule Arlix.HttpApi do
         end
        _ -> nil
     end
+  end
+
+  defp set_content_type(transaction, content_type) do
+    tx(transaction, tags: [{"Content-Type", content_type}])
   end
 
   @doc """

@@ -32,9 +32,9 @@ defmodule Arlix.Transaction do
     %{
       "format" => format,
       "id" => Base.url_encode64(id, padding: false),
-      "last_tx" => last_tx,
+      "last_tx" => Base.url_encode64(last_tx, padding: false),
       "owner" => Base.url_encode64(owner, padding: false),
-      "tags" => tags,
+      "tags" => prepare_tags(tags),
       "target" => Base.url_encode64(target, padding: false),
       "quantity" => Integer.to_string(quantity),
       "data" => Base.url_encode64(data, padding: false),
@@ -44,5 +44,9 @@ defmodule Arlix.Transaction do
       "signature" => Base.url_encode64(signature, padding: false),
       "reward" => Integer.to_string(reward)
     }
+  end
+
+  defp prepare_tags(tags) do
+     Enum.map(tags, fn {name, value} -> %{"name" => Base.url_encode64(name, padding: false), "value" => Base.url_encode64(value, padding: false)} end)
   end
 end
