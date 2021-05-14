@@ -91,6 +91,7 @@ defmodule Arlix.Contract do
   defp load_source_from_id(src_id, ar_node) do
     case HttpApi.get_data(src_id, ar_node) do
       {:ok, src} -> src
+      _ -> {:error, "http error"}
     end
   end
 end
