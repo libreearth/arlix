@@ -49,4 +49,8 @@ defmodule Arlix.Transaction do
   defp prepare_tags(tags) do
      Enum.map(tags, fn {name, value} -> %{"name" => Base.url_encode64(name, padding: false), "value" => Base.url_encode64(value, padding: false)} end)
   end
+
+  def decode_tags(tags) do
+    Enum.map(tags, fn %{"name" => name, "value" => value} -> {Base.url_decode64!(name, padding: false), Base.url_decode64!(value, padding: false)} end)
+  end
 end

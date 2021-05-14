@@ -10,7 +10,7 @@ defmodule Arlix.HttpApi do
 
   Returns an integer with the cost in Winstons
   """
-  def get_data_tx_price(size_bytes, ar_node \\ @default_node) do
+  def get_data_tx_price!(size_bytes, ar_node \\ @default_node) do
     case HTTPoison.get("#{ar_node}/price/#{size_bytes}") do
       {:ok, response} ->
         String.to_integer(response.body)
@@ -24,7 +24,7 @@ defmodule Arlix.HttpApi do
 
   Returns the last transacion id
   """
-  def get_wallet_last_tx(wallet_map, ar_node \\ @default_node) do
+  def get_wallet_last_tx!(wallet_map, ar_node \\ @default_node) do
     wallet_map
     |> wallet_map_to_address()
     |> get_url_address_last_tx(ar_node)
@@ -48,18 +48,18 @@ defmodule Arlix.HttpApi do
 
   Returns a map with the transaction fields
   """
-  def upload_data(data, wallet_map, content_type, ar_node \\ @default_node) do
-    price = get_data_tx_price(byte_size(data), ar_node)
-    last_tx = get_wallet_last_tx(wallet_map, ar_node)
+  def upload_data(data, %{} = wallet_map, content_type, tags \\ [], ar_node \\ @default_node) do
+    price = get_data_tx_price!(byte_size(data), ar_node)
+    last_tx = get_wallet_last_tx!(wallet_map, ar_node)
     pub = wallet_map["n"] |> Base.url_decode64!(padding: false)
     priv = wallet_map["d"] |> Base.url_decode64!(padding: false)
-    create_data_transaction(data, price, last_tx, content_type, priv, pub)
+    create_data_transaction(data, price, last_tx, content_type, priv, pub, tags)
     |> post_transaction(ar_node)
   end
 
-  def create_data_transaction(data, price, last_tx, content_type, priv, pub) do
+  def create_data_transaction(data, price, last_tx, content_type, priv, pub, tags \\ []) do
     Transaction.new(data, price, decode_last_tx(last_tx))
-    |> set_content_type(content_type)
+    |> set_tags([{"Content-Type", content_type}]++tags)
     |> Transaction.sign(priv,pub)
     |> Transaction.to_map()
   end
@@ -72,15 +72,15 @@ defmodule Arlix.HttpApi do
     case HTTPoison.post("#{ar_node}/tx", Jason.encode!(tx_map) , [{"Accept", "application/json"}, {"Content-Type", "application/json"}]) do
       {:ok, response} ->
         case response.status_code do
-          200 -> tx_map
-          _sc -> response.body
+          200 -> {:ok, tx_map}
+          _sc -> {:error, response.body}
         end
-       _ -> nil
+       _ -> {:error, "http error"}
     end
   end
 
-  defp set_content_type(transaction, content_type) do
-    tx(transaction, tags: [{"Content-Type", content_type}])
+  defp set_tags(transaction, tags) do
+    tx(transaction, tags: tags)
   end
 
   @doc """
@@ -89,7 +89,7 @@ defmodule Arlix.HttpApi do
 
   Returns a string describing the transaction status
   """
-  def transaction_status(tx_id_base64, ar_node \\ @default_node) do
+  def transaction_status!(tx_id_base64, ar_node \\ @default_node) do
     case HTTPoison.get("#{ar_node}/tx/#{tx_id_base64}/status") do
        {:ok, response} -> response.body
        _ -> nil
@@ -105,9 +105,9 @@ defmodule Arlix.HttpApi do
   def wallet_balance(wallet_map, ar_node \\ @default_node) do
     wallet_address = wallet_map_to_address(wallet_map)
     case HTTPoison.get("#{ar_node}/wallet/#{wallet_address}/balance") do
-      {:ok, response} -> Jason.decode!(response.body)
-      _ -> nil
-   end
+      {:ok, response} -> {:ok, Jason.decode!(response.body)}
+      _ -> {:error, "http error"}
+    end
   end
 
   defp wallet_map_to_address(wallet_map) do
@@ -116,4 +116,30 @@ defmodule Arlix.HttpApi do
     |> Wallet.to_address()
     |> Base.url_encode64(padding: false)
   end
+
+  @doc """
+  Get transaction
+  """
+  def get_tx(tx_id, ar_node \\ @default_node) do
+    case HTTPoison.get("#{ar_node}/tx/#{tx_id}") do
+      {:ok, response} ->
+        case response.status_code do
+          200 -> {:ok, Jason.decode!(response.body)}
+          202 -> {:pending, response.body}
+        end
+      _ -> {:error, "http error"}
+    end
+  end
+
+  def get_data(tx_id,  ar_node \\ @default_node) do
+    case HTTPoison.get("#{ar_node}/tx/#{tx_id}/data") do
+      {:ok, response} ->
+        case response.status_code do
+          200 -> {:ok, Base.url_decode64!(response.body, padding: false)}
+          202 -> {:pending, response.body}
+        end
+      _ -> {:error, "http error"}
+    end
+  end
+
 end
