@@ -131,6 +131,9 @@ defmodule Arlix.HttpApi do
     end
   end
 
+  @doc """
+  Get data of a transaction
+  """
   def get_data(tx_id,  ar_node \\ @default_node) do
     case HTTPoison.get("#{ar_node}/tx/#{tx_id}/data") do
       {:ok, response} ->
@@ -139,6 +142,40 @@ defmodule Arlix.HttpApi do
           202 -> {:pending, response.body}
         end
       _ -> {:error, "http error"}
+    end
+  end
+
+  @doc """
+  Query the actions that reference the `contract_id`
+  """
+  def find_actions(contract_id, ar_node \\ @default_node) do
+    response =
+      Neuron.query("""
+        query {
+          transactions(
+            sort: HEIGHT_ASC,
+            tags: [
+              {
+                name: "Contract",
+                values:["#{contract_id}"]
+              }
+            ]
+          ) {
+            edges {
+              node {
+                id
+              }
+            }
+          }
+        }
+        """,
+        %{},
+        url: "#{ar_node}/graphql"
+      )
+
+    case response do
+      {:ok, %Neuron.Response{body: %{"data" => %{"transactions" => %{"edges" => edges}}}}} -> {:ok, Enum.map(edges, fn %{"node" => %{"id" => id}} -> id end)}
+      _ -> {:error, "Query error"}
     end
   end
 

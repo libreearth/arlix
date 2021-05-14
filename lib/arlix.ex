@@ -3,11 +3,11 @@ defmodule Arlix do
   Documentation for Arlix.
   """
 
-  @doc """
-  Definition for ArWeave TX record
 
-  """
   defmodule Tx do
+    @moduledoc """
+    Definition for ArWeave TX record
+    """
     require Record
 
     Record.defrecord(:tx,
