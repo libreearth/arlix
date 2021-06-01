@@ -14,6 +14,4 @@ defmodule TransactionTest do
     assert {"App-Name", "SmartWeaveContractSource"} = List.first(decoded)
   end
 
-
-
 end

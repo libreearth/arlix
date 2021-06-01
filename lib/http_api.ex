@@ -96,6 +96,10 @@ defmodule Arlix.HttpApi do
     end
   end
 
+  def transaction_status(tx_id_base64, ar_node \\ @default_node) do
+    HTTPoison.get("#{ar_node}/tx/#{tx_id_base64}/status")
+  end
+
   @doc """
   Gets the amount of Winstons in the given `wallet_map`
   To obtain a new  `wallet_map` just call `Arlix.Wallet.new_wallet_map()`,
