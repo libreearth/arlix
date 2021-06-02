@@ -68,12 +68,12 @@ defmodule Arlix.Contract do
   Returns the map of the contract if the action_id is valid, or {:error, "the reason"}
   otherwise
   """
-  def validate_action(wallet, action_id, contract,  ar_node \\ @default_node) do
+  def validate_action(action_id, contract,  ar_node \\ @default_node) do
     case load_action(action_id) do
       {:ok, action_tx} ->
         input = load_input(action_tx) |> Jason.decode!()
         method = load_method(action_tx)
-        case run_contract(wallet, input, contract["state"], method, contract["src"]) do
+        case run_contract(action_tx["owner"], input, contract["state"], method, contract["src"]) do
           {:ok, state} ->
             case HttpApi.get_data(action_id, ar_node)  do
               {:ok, pre_computed_state_txt} ->
@@ -95,7 +95,7 @@ defmodule Arlix.Contract do
   Returns the contract map with the id of the contract and the last valid state
   of the contract {:ok, last_valid_contract_state} or {:error, "the reason"}
   """
-  def read_last_contract_state(wallet, contract_id, ar_node \\ @default_node ) do
+  def read_last_contract_state(contract_id, ar_node \\ @default_node ) do
     case load_contract(contract_id) do
       {:ok, contract}  ->
         case HttpApi.find_actions(contract_id, ar_node) do
@@ -103,7 +103,7 @@ defmodule Arlix.Contract do
             {
               :ok,
               Enum.reduce(action_ids, contract, fn (action_id, acc_contract) ->
-                case validate_action(wallet, action_id, acc_contract) do
+                case validate_action(action_id, acc_contract) do
                   {:ok, new_contract} -> new_contract
                   _other -> acc_contract
                 end
@@ -119,9 +119,9 @@ defmodule Arlix.Contract do
   Calculates the last state of a contract and then, given an input and a method calculates next state and saves it.
   """
   def update_contract(wallet, contract_id, input, method, ar_node \\ @default_node) do
-    case read_last_contract_state(wallet, contract_id, ar_node) do
+    case read_last_contract_state(contract_id, ar_node) do
       {:ok, contract} ->
-        case run_contract(wallet, input, contract["state"], method, contract["src"]) do
+        case run_contract(wallet["n"], input, contract["state"], method, contract["src"]) do
           {:ok, new_state} ->save_action(wallet, new_state, contract_id, input, method, ar_node)
           other -> other
         end
@@ -138,9 +138,9 @@ defmodule Arlix.Contract do
     [{"App-Name", @contract_app_name}, {"App-Version", @app_version}, {"Contract", contract_id}, {@contract_input,  Jason.encode!(input)}, {@contract_method, method} ]
   end
 
-  defp run_contract(%{} = wallet,%{} = input, %{} = init_state, method, source_txt) do
+  def run_contract(owner_pub_key, %{} = input, %{} = init_state, method, source_txt) do
     Code.eval_string(source_txt)
-    ArlixContract.run_contract(wallet["n"], method, input, init_state)
+    ArlixContract.run_contract(owner_pub_key, method, input, init_state)
   end
 
   defp load_src_from_tx(contract_tx, ar_node) do
