@@ -14,6 +14,10 @@ defmodule ArlixContract do
     {:info, Map.get(accounts, owner, 0)}
   end
 
+  def run_contract(_owner, _method, _input, _accounts) do
+    {:error, "Nothing to see here"}
+  end
+
   defp has_enough_gold?(user, quantity, accounts) do
     Map.get(accounts, user, 0) >= quantity
   end

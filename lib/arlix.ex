@@ -1,7 +1,22 @@
 defmodule Arlix do
+  use Application
   @moduledoc """
   Documentation for Arlix.
   """
+
+  def start(_type, _args) do
+    import Supervisor.Spec, warn: false
+
+    children = [
+      # Define workers and child supervisors to be supervised
+      Arlix.Runtime.NodePool
+    ]
+
+    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
+    # for other strategies and supported options
+    opts = [strategy: :one_for_one, name: Arlix.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
 
 
   defmodule Tx do
