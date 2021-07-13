@@ -2,6 +2,13 @@
 
 **TODO: Add description**
 
+## Remote node
+For the runtime to work you need to init the node with a name with the elixir --sname parameter
+> iex --sname=localname -S mix
+
+After that to init the node
+> Arlix.Runtime.ElixirStandalone.init()
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed

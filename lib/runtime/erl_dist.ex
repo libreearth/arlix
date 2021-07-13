@@ -18,10 +18,6 @@ defmodule Arlix.Runtime.ErlDist do
 
   # Modules to load into the connected node.
   @required_modules [
-    Arlix.Evaluator,
-    Arlix.Evaluator.IOProxy,
-    Arlix.Evaluator.DefaultFormatter,
-    Arlix.Completion,
     Arlix.Runtime.ErlDist,
     Arlix.Runtime.ErlDist.Manager,
     Arlix.Runtime.ErlDist.EvaluatorSupervisor,

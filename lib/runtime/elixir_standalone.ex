@@ -37,7 +37,11 @@ defmodule Arlix.Runtime.ElixirStandalone do
       argv = [parent_node]
 
       with {:ok, elixir_path} <- find_elixir_executable(),
-           port = start_elixir_node(elixir_path, child_node, child_node_eval_string(), argv) |> IO.inspect,
+           port = start_elixir_node(
+             elixir_path,
+             child_node,
+             child_node_eval_string(),
+             argv),
            {:ok, primary_pid} <- parent_init_sequence(child_node, port) do
         runtime = %__MODULE__{
           node: child_node,
