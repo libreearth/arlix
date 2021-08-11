@@ -4,18 +4,30 @@ defmodule Arlix do
   Documentation for Arlix.
   """
 
+  alias Arlix.ContractExecutor
+  alias Arlix.Contract
+
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
 
+
+    # Define workers and child supervisors to be supervised
     children = [
-      # Define workers and child supervisors to be supervised
-      Arlix.Runtime.NodePool
+      {DynamicSupervisor, strategy: :one_for_one, name: Arlix.DynamicSupervisor}
     ]
 
-    # See http://elixir-lang.org/docs/stable/elixir/Supervisor.html
-    # for other strategies and supported options
-    opts = [strategy: :one_for_one, name: Arlix.Supervisor]
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(children, strategy: :one_for_one)
+  end
+
+  @doc """
+  Creates an arlix node to rembember the state of a contract
+  """
+  def create_node(contract_id) do
+    case Contract.load_contract(contract_id) do
+      {:ok, contract} ->
+        DynamicSupervisor.start_child(Arlix.DynamicSupervisor, {ContractExecutor, {contract_id, contract}})
+      error -> error
+    end
   end
 
 
