@@ -129,9 +129,11 @@ defmodule Arlix.ContractExecutor do
 
   defp process_name(node_name), do: String.to_atom("parent_#{node_name}")
 
+  defp machine_name(), do: node() |> Atom.to_string() |> String.split("@") |> Enum.at(1)
+
   defp spawn_executor(node_name, %{"src" => src, "state" => _init_state} = contract) do
     elixir_path = System.find_executable("elixir")
-    executor_node = "#{node_name}@localhost"
+    executor_node = "#{node_name}@#{machine_name()}"
     child_node = {:contract_executor, String.to_atom(executor_node)}
     port =  Port.open({:spawn_executable, elixir_path}, args: ["--sname", executor_node, "--eval", @remote_node_code, process_name(node_name), node()])
     receive do
