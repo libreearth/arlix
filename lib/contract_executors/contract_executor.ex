@@ -73,7 +73,8 @@ defmodule Arlix.ContractExecutor do
     end
   end
 
-  def handle_info({_port, {:data, _text}}, state) do
+  def handle_info({_port, {:data, text}}, state) do
+    IO.puts text
     {:noreply, state}
   end
 
@@ -135,7 +136,7 @@ defmodule Arlix.ContractExecutor do
     elixir_path = System.find_executable("elixir")
     executor_node = "#{node_name}@#{machine_name()}"
     child_node = {:contract_executor, String.to_atom(executor_node)}
-    port =  Port.open({:spawn_executable, elixir_path}, args: ["--sname", executor_node, "--eval", @remote_node_code, process_name(node_name), node()])
+    port =  Port.open({:spawn_executable, elixir_path}, args: ["--sname", executor_node, "--eval", @remote_node_code, "--cookie", Node.get_cookie(), process_name(node_name), node()])
     receive do
       :node_started ->
         Process.monitor(child_node)
