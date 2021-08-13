@@ -88,7 +88,7 @@ defmodule Arlix.ContractExecutor do
   Executes the contract with the given params and the current executor state and returns the result
   """
   def execute_contract(pid, owner, method, input) do
-    GenServer.call(pid, {:execute_contract, owner, method, input})
+    GenServer.call(pid, {:execute_contract, owner, method, input}, 20_000)
   end
 
   @doc """
@@ -97,14 +97,14 @@ defmodule Arlix.ContractExecutor do
   defines the new contract state
   """
   def move_to_last_contract_state(pid) do
-    GenServer.call(pid, :move_to_last_contract_state)
+    GenServer.call(pid, :move_to_last_contract_state, 20_000 )
   end
 
   @doc """
   Gets the state of the contract
   """
   def get_state(pid) do
-    GenServer.call(pid, :get_state)
+    GenServer.call(pid, :get_state, 20_000)
   end
 
   @doc """
@@ -116,7 +116,7 @@ defmodule Arlix.ContractExecutor do
   `File.read!("key_file.json") |> Arlix.Wallet.from_json()`
   """
   def update_transaction(pid, wallet, input, method) do
-    GenServer.call(pid, {:update_transaction, wallet, input, method})
+    GenServer.call(pid, {:update_transaction, wallet, input, method}, 20_000)
   end
 
   @doc """
@@ -124,7 +124,7 @@ defmodule Arlix.ContractExecutor do
   the one calculated from the beguining
   """
   def validate_state(pid) do
-    GenServer.call(pid, :validate_state)
+    GenServer.call(pid, :validate_state, 20_000)
   end
 
   defp process_name(node_name), do: String.to_atom("parent_#{node_name}")
@@ -151,7 +151,7 @@ defmodule Arlix.ContractExecutor do
           {:reply, _new_contract, new_status} -> {:ok, new_status}
           {:error, message} -> {:stop, message}
         end
-      after 10_000 ->
+      after 30_000 ->
         {:stop, "Opening the execution node is taking too much time"}
     end
   end
