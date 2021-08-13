@@ -1,10 +1,10 @@
 <!-- livebook:{"persist_outputs":true} -->
 
-# Arlix - An Elixir Language framework to write Smart Contracts over an Arweave blockhain
+# Arlix - An Elixir Language framework to write Smart Contracts over an Arweave blockchain
 
 ## Loading the library
 
-The first step to make your app to load and create smart contracts over Arweave is to load the Arlix library. Include it in the mix.exs file as usual.
+The first step to make your app to load and create smart contracts over Arweave is to load the Arlix library. Include it in the <code>mix.exs</code> file as usual.
 
 ```elixir
 Mix.install([{:arlix, github: 'libreearth/arlix'}], force: true)
@@ -137,12 +137,12 @@ Generated arlix app
 
 ## Arlix Contract format
 
-The Arlix contract consists in a central Arweave transaction, where you can upload a binary. This binary can be interpreted as the "phisical-digital" object related to the contract. 
+The Arlix contract consists in a central Arweave transaction, where you can store binary data. This binary can be interpreted as the "phisical-digital" object related to the contract. 
 The transaction has a initial state in json format and a reference to the other transaction where the Elixir code is as a binary.
 
 <!-- livebook:{"break_markdown":true} -->
 
-The initial state is the information described in json format, about the current state of the contract, for example, who is the owner of the digital content in the transaction.
+The initial state is information described in json format, about the current state of the contract, for example, who is the owner of the digital content of the transaction. Any information described in json format is a valid contract state.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -150,8 +150,17 @@ You can find an example of an Arlix contract in the following Arweave transactio
 
 <!-- livebook:{"break_markdown":true} -->
 
-This example consist in a bank that initialy has 1000 coins and can transfer thouse coins to other Arweave wallets. 
+This example consist in a bank that initialy has 1000 coins owned by two users. The idea is to transfer thouse coins to other Arweave wallets. 
 The initial state would be:
+
+<!-- livebook:{"break_markdown":true} -->
+
+<strong>
+{
+    "accounts":{
+      "pGfFMlk8bs_wFfvnYX3rQQUAXmBfvZMt50wroFTWPCixvqd6a0rVyh3EhMd2XYQMZ5fB1nYZduqfR6l3d4GX61MrL1cmTqaG6xsnjf7-YfOi03ussugVs0XbzqUHKJac8SyxrFzuU2sl0q2-cKep9NbjLcXWj-Bsux0BXTyhs5Y4kiPwAhV2yxl8EZRBKf6_qjVgcnyRc2wqFmA_PswDRUXfjrADY5jILZe9ngTePEdathGYjRgH2bYM93caFgWyUNo0vrvcGjg3WkpqMvtYz6SA6Xz0Z3r5kLQyC96Z90SwEqMb5IufzasJAckedJiFB7VPrwIk_t_yQUMEyukucnvFYfHD1-PnF3FfVRE5fbrsQyXF5gFR96q7KrBO1g8YBgwq1oa3Ui-g5n1zBln69SEuaH6Yo9TyJ0S3AL2ic7IU-tai5Zh6B05mdoq9pEzpjq8GZXSYqEmRsOsNUAwAevWv9hY65kMlegUtV3vfYKrrj7RxFDmhhJpY8utrAGcrIy9NVUrrJ_aCFoGjK7Kr3tWKqjuPbAlhpTp-W7zY05XvvgoHEgHlaBwCHQS1AWSXkY4gv1jF87jhgPfUPUzuBfCo8AKkED_su_Hjo3DQ5Lwv2ymrKF2aI2hFqF1OV63qkNgy5-NZVFPHz6Fu7uN7aLw_2nUXSKT0WF3ay3M0fx0":49,
+      "xbVdoMCSWcgKssac3Mw_xvu2e-yR6PjmoES9X-ySTNT4DIajsLYkZ2QkG5CKng93Y-Eya-Q6S0-igJprPYoqQsNoYPXzHwJ3EGothQ3x2O6Taptv1LWRswexQUj1t0iyaspqA6PATSKugO60VgazvH-C5Dm4KjpbkQGkrWi2HCo9PYdPLYrGO_AUqdSHZUUSSrTk__VOkusvAJBMm3RqfiMFKxc07jT3oOerxhh7VteHb3q9XhKe62_DFKts237T0e1Gimcv7KfBDYXm_wp-gEC4q4fVBOuFibMm30Da-Y-fEMV8P3u2PDfmqNVGnOIwHSPmpaqNn_uystXZL9w1NbQLPC4fHz66yS9DIUtMPNtIlMMxUngs56oInntTE7zyop2RCLoSGIiKYWxiAVGwQy5Skk_94twlVmWYKuRHY1mb8IjrL9fB5DHjFdRsbx94-xq4TqU7xBNA47isFswREEIeUrX5p-sq8Uz-iaMiNiVLzYtysra8ZDMxp8BEoBN6wfctWQPKW3Di4vOLV0sb7iuF42RxEo7oN21d_7Thh5NtoBqxmEInQKoj_RxrYN9tuvaKKed8gMx-rVNVEFKgLGwcgUExX-0B9dpZqRaw8ZjJaQ6AF_3Qe86jTjmLDPopZ-UmhkMUli_3SHP8-CIpoeC4aft5VdCTFHD5K5NXuQ8":951}}</strong>
+</strong>
 
 ## Arlix Contract Elixir Code
 
@@ -195,12 +204,12 @@ end
 {:module, ArlixContract, <<70, 79, 82, 49, 0, 0, 10, ...>>, {:transfer_gold, 4}}
 ```
 
-The contract code describe how the state of the contract can be changed. When an Arweave user with a wallet, wants to change the state of the code must call Arlix to execute the contract code. The method run_contract/4 in the contract define the possible actions.
+The contract code describe how the initial state of the contract can be changed. When an Arweave user (with a wallet) wants to change the initial state he/she must call Arlix to execute the contract code. The method <code>run_contract/4</code> can do that.
 
 <!-- livebook:{"break_markdown":true} -->
 
 The method run_contract/4 receives the wallet´s public key used to run the contract, the method to be executed, a map with the input parameters and the current state of the contract. 
-The method must return {:ok, state} to change the state of the contract, {:info, info} if the state doesn´t change and only information is returned or {:error, reason} if an error happens or the call is incorrect
+The method must return <code>{:ok, state}</code> to change the state of the contract, <code>{:info, info}</code> if the state doesn´t change and only information is returned or <code>{:error, reason}</code> if an error happens or the call is incorrect
 
 ## Arlix Contract Action
 
@@ -216,7 +225,9 @@ Arlix contract can be loaded using the id of the Arweave transaction that has th
 
 <!-- livebook:{"break_markdown":true} -->
 
-Arlix.create_node/1 is used to store the contract in the computer´s memory.
+<code>
+Arlix.create_node/1
+</code>
 
 ```elixir
 {:ok, pid} = Arlix.create_node("Bft911yTnCYq8S3iTK4X7hSFStEyZuhINk4GGfxxpy0")
@@ -234,7 +245,7 @@ Arlix has now a copy of the contract in memory and will use it to minimize the a
 
 ## Validate contract state
 
-Once the contract is loaded in Arlix, may happen that another person changes the state of the contract addind an Action in the Arweave blockchain. To check that the state of the contract in memory is similar to the one in the blockchain we have Arlix.ContractExecutor.validate_state/1
+Once the contract is loaded in Arlix, may happen that another person changes the state of the contract addind an Action in the Arweave blockchain. To check that the state of the contract in memory is similar to the one in the blockchain we have <code>Arlix.ContractExecutor.validate_state/1</code>
 
 ```elixir
 Arlix.ContractExecutor.validate_state(pid)
@@ -244,7 +255,7 @@ Arlix.ContractExecutor.validate_state(pid)
 true
 ```
 
-If true then the state of the contract in memory is the same as the one of the blockchain. In case there is a discrepancy we can use Arlix.ContractExecutor.move_to_last_contract_state/1 to update the state in memory with the information in the blockchain and make them match again.
+If true then the state of the contract in memory is the same as the one of the blockchain. In case there is a discrepancy we can use <code>Arlix.ContractExecutor.move_to_last_contract_state/1</code> to update the state in memory with the information in the blockchain and make them match again.
 
 ```elixir
 Arlix.ContractExecutor.move_to_last_contract_state(pid)
@@ -268,7 +279,7 @@ The function returns a map with information about the updated contract state
 
 ## Running a contract
 
-We can run a contract method with the function Arlix.ContractExecutor.execute_contract/4. This function executes the contract but only returns the result of the action, but doesn't save it on the blockchain.
+We can run a contract method with the function <code>Arlix.ContractExecutor.execute_contract/4.</code> This function executes the contract but only returns the result of the action, but doesn't save it on the blockchain.
 
 ```elixir
 public_key_of_the_owner =
@@ -289,7 +300,7 @@ It´s ok using directly any public key as this function only is used as a test, 
 
 <!-- livebook:{"break_markdown":true} -->
 
-Sometimes what we want is really to update the contract, for example lets say that someone wants to transfer another user a coin. This means the state of the contract must change. In this case is not enough to run the contract, we must run it and then save it. To save the contract we need not only the public key, but the whole wallet. Any saved operation in the blockchain must be signed with our private key.
+Sometimes what we want is to update the contract, for example, lets say that someone wants to transfer to another wallet a coin. This means the state of the contract must change. In this case is not enough to run the contract, we must run it and then save it. To save the contract is not enough with the public key, but the whole wallet. Any saved operation in the blockchain must be signed with the private key of the person that changes the contract state.
 
 <!-- livebook:{"break_markdown":true} -->
 
@@ -307,7 +318,7 @@ wallet = File.read!(wallet_file_path) |> Arlix.Wallet.from_json()
 "Secret!!"
 ```
 
-Now we have the wallet we can call the contract, but this time we will use the function Arlix.ContractExecutor.update_transaction/4. This function not only executes the contract, but also store the result in a Arweave transaction as an Arlix Action
+Now we have the wallet and we can call the contract, but this time we will use the function <code>Arlix.ContractExecutor.update_transaction/4.</code> This function not only executes the contract, but also store the result in a Arweave transaction as an Arlix Action
 
 ```elixir
 input = %{
@@ -351,7 +362,7 @@ Arlix.ContractExecutor.update_transaction(pid, wallet, input, "transfer")
 }
 ```
 
-We can see the execution has returned a map describing the arlix transaction, this are good news, it means the transaction has been sent to the blockchain and soon a gentle miner will write it down. Anyway Arlix is aware that the transaction has been done, so you don't have to wait for the miners to complete the job. You can alredy see the new state.
+We can see the execution has returned a map describing the arlix transaction, this are good news, it means the transaction has been sent to the Arweave network and soon a gentle miner will write it down to the blockchain. Anyway Arlix is aware that the transaction has been done, so you don't have to wait for the miners to complete the job. You can alredy see the new state.
 
 ```elixir
 Arlix.ContractExecutor.get_state(pid)
@@ -372,7 +383,11 @@ Arlix.ContractExecutor.get_state(pid)
 }
 ```
 
-We can see in the state of the contract, that the contract has been already executed. Anyway if we check if the contract has the same information than the blockchain we can see that´s not the case.
+We can see then contract has been already executed.
+
+<!-- livebook:{"break_markdown":true} -->
+
+Sadly if we check if the contract has the same information than the blockchain we can see that´s not the case.
 
 ```elixir
 Arlix.ContractExecutor.validate_state(pid)
@@ -382,7 +397,7 @@ Arlix.ContractExecutor.validate_state(pid)
 false
 ```
 
-Anyway that's a temporal situation, as soon as a miner writes down the transaction to the blockchain the check will succeed. Anyway we have already our new state in the Arlix memory, so we can work with it even if the transaction is not completed.
+It doesn´t matter, it is a temporal situation, as soon as a miner writes down the transaction to the blockchain the check will succeed. But thanks to Arlix we have already our new state in memory, so we can work with it even if the transaction is not completed.
 
 ```elixir
 public_key_of_the_owner =
@@ -415,7 +430,7 @@ Arlix.HttpApi.transaction_status!("4XL0cKZCyffzzyhbpFoO1YBUFbcUhk941JXiKAIxrhg")
 "{\"block_height\":747940,\"block_indep_hash\":\"V8Q2xzrTHMDRCqNgUwpQZfbDFa6qZQ9BPDPDFO7lHpiJ7vrj5f9DVDpsSFmzB-_P\",\"number_of_confirmations\":4}"
 ```
 
-The transaction is in the block so... now we can check if Arlix is sinchronize
+The transaction is in the block so... now we can check if Arlix is sinchronized.
 
 ```elixir
 Arlix.ContractExecutor.validate_state(pid)
@@ -425,21 +440,20 @@ Arlix.ContractExecutor.validate_state(pid)
 true
 ```
 
-It is, so nice... :)
+This is so nice... :)
 
 ## Creating a new Arlix Contract
 
-Arlix comes with several modules to interact with the Arlix contracts in a functional module. Please visit the Arlix.Contract module documentation of the library so you can explore the different options.
+Arlix comes with several modules to interact with Arlix contracts in a functional way. Please visit the Arlix.Contract module documentation of the library so you can explore the different options.
 
 <!-- livebook:{"break_markdown":true} -->
 
-The most interesting option is the capability of creating new contracts. To create a new Contract first we need to upload the source code of the contract.
-and load it as a string.
+The most interesting option is the capability of creating new contracts. To create a new Contract first we need to upload the source code of the contract and load it as a string.
 Also we need a map with the initial estate of the contract.
 
 <!-- livebook:{"break_markdown":true} -->
 
-After that use the Arlix.Contract.upload_contract_src/3 and Arlix.Contract.upload_contract_init_data/6 as shown behind:
+After that use the <code>Arlix.Contract.upload_contract_src/3</code> and <code>Arlix.Contract.upload_contract_init_data/6</code> as shown behind:
 
 ```elixir
 code = """
