@@ -1,4 +1,6 @@
 defmodule Arlix.Transaction do
+  import Arlix.Tx
+
   def new() do
     :ar_tx.new()
   end
@@ -23,6 +25,12 @@ defmodule Arlix.Transaction do
     :ar_tx.sign_v1(transaction, priv, pub)
   end
 
+  def sign_v2(transaction, priv, pub) do
+    tx = :ar_tx.generate_chunk_tree(transaction)
+    tx_v2 = tx(tx, format: 2)
+    :ar_tx.sign(tx_v2, priv, pub)
+  end
+
   def get_addresses(transactions) do
     :ar_tx.get_addresses(transactions)
   end
@@ -39,7 +47,7 @@ defmodule Arlix.Transaction do
       "quantity" => Integer.to_string(quantity),
       "data" => Base.url_encode64(data, padding: false),
       "data_size" => Integer.to_string(data_size),
-      "data_tree" => data_tree,
+      #"data_tree" => data_tree,
       "data_root" => Base.url_encode64(data_root, padding: false),
       "signature" => Base.url_encode64(signature, padding: false),
       "reward" => Integer.to_string(reward)
