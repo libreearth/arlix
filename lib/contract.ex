@@ -77,16 +77,19 @@ defmodule Arlix.Contract do
           {:ok, state} ->
             case HttpApi.get_data(action_id, ar_node)  do
               {:ok, pre_computed_state_txt} ->
-                pre_computed_state = Jason.decode!(pre_computed_state_txt)
-                if pre_computed_state == state do
-                  {
-                    :ok,
-                    contract
-                    |> Map.put("state", state)
-                    |> Map.put("last_action_id", action_id)
-                  }
-                else
-                  {:error, "invalid action state"}
+                case Jason.decode(pre_computed_state_txt) do
+                  {:ok, pre_computed_state} ->
+                    if pre_computed_state == state do
+                      {
+                        :ok,
+                        contract
+                        |> Map.put("state", state)
+                        |> Map.put("last_action_id", action_id)
+                      }
+                    else
+                      {:error, "invalid action state"}
+                    end
+                  other -> other
                 end
             end
           other -> other

@@ -36,7 +36,7 @@ defmodule Arlix.Transaction do
   end
 
   def to_map(tx) do
-    {:tx, format, id, last_tx, owner, tags, target, quantity, data, data_size, data_tree, data_root, signature, reward} = tx
+    {:tx, format, id, last_tx, owner, tags, target, quantity, data, data_size, _data_tree, data_root, signature, reward} = tx
     %{
       "format" => format,
       "id" => Base.url_encode64(id, padding: false),
