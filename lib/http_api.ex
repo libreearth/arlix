@@ -60,7 +60,7 @@ defmodule Arlix.HttpApi do
   def create_data_transaction(data, price, last_tx, content_type, priv, pub, tags \\ []) do
     Transaction.new(data, price, decode_last_tx(last_tx))
     |> set_tags([{"Content-Type", content_type}]++tags)
-    |> Transaction.sign_v2(priv,pub)
+    |> Transaction.sign(priv,pub)
     |> Transaction.to_map()
   end
 
