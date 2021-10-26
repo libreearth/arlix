@@ -5,6 +5,7 @@ defmodule Arlix do
   """
 
   alias Arlix.ContractExecutor
+  alias Arlix.TransactionSaver
   alias Arlix.Contract
 
   def start(_type, _args) do
@@ -25,7 +26,10 @@ defmodule Arlix do
   def create_node(contract_id) do
     case Contract.load_contract(contract_id) do
       {:ok, contract} ->
-        DynamicSupervisor.start_child(Arlix.DynamicSupervisor, {ContractExecutor, {contract_id, contract}})
+        case DynamicSupervisor.start_child(Arlix.DynamicSupervisor, {TransactionSaver, []}) do
+          {:ok, saver_pid} -> DynamicSupervisor.start_child(Arlix.DynamicSupervisor, {ContractExecutor, {contract_id, contract, saver_pid}})
+          error -> error
+        end
       error -> error
     end
   end

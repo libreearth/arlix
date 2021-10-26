@@ -49,15 +49,32 @@ defmodule Arlix.HttpApi do
   Returns a map with the transaction fields
   """
   def upload_data(data, %{} = wallet_map, content_type, tags \\ [], ar_node \\ @default_node) do
-    price = get_data_tx_price!(byte_size(data), ar_node)
-    last_tx = get_wallet_last_tx!(wallet_map, ar_node)
-    pub = wallet_map["n"] |> Base.url_decode64!(padding: false)
-    priv = wallet_map["d"] |> Base.url_decode64!(padding: false)
-    create_data_transaction(data, price, last_tx, content_type, priv, pub, tags)
+    create_data_transaction(data, wallet_map, nil, content_type, tags, ar_node)
     |> post_transaction(ar_node)
   end
 
-  def create_data_transaction(data, price, last_tx, content_type, priv, pub, tags \\ []) do
+  @doc """
+    Creates and sing a data transaction with the given information
+  """
+  def create_data_transaction(data, wallet_map, last_tx, content_type, tags \\ [], ar_node \\ @default_node)
+
+  def create_data_transaction(data, %{} = wallet_map, nil, content_type, tags, ar_node) do
+    last_tx = get_wallet_last_tx!(wallet_map, ar_node)
+    create_data_transaction(data, wallet_map, last_tx, content_type, tags, ar_node)
+  end
+
+
+  def create_data_transaction(data, %{} = wallet_map, last_tx, content_type, tags, ar_node) do
+    price = get_data_tx_price!(byte_size(data), ar_node)
+    pub = wallet_map["n"] |> Base.url_decode64!(padding: false)
+    priv = wallet_map["d"] |> Base.url_decode64!(padding: false)
+    build_and_sign_data_transaction(data, price, last_tx, content_type, priv, pub, tags)
+  end
+
+  @doc """
+    Creates and sing a data transaction with the given information
+  """
+  def build_and_sign_data_transaction(data, price, last_tx, content_type, priv, pub, tags \\ []) do
     Transaction.new(data, price, decode_last_tx(last_tx))
     |> set_tags([{"Content-Type", content_type}]++tags)
     |> Transaction.sign(priv,pub)
@@ -98,6 +115,17 @@ defmodule Arlix.HttpApi do
 
   def transaction_status(tx_id_base64, ar_node \\ @default_node) do
     HTTPoison.get("#{ar_node}/tx/#{tx_id_base64}/status")
+  end
+
+  @doc """
+  Gets a transaction status and clasify the message, return :pending, :not_found, :ok
+  """
+  def tx_status(tx_id_base64, ar_node \\ @default_node) do
+    case transaction_status!(tx_id_base64, ar_node) do
+      "Pending" -> :pending
+      "{\"status\":400,\"error\":\"Invalid address.\"}" -> :not_found
+      _ -> :ok
+    end
   end
 
   @doc """

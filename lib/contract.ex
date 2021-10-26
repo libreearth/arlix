@@ -149,6 +149,21 @@ defmodule Arlix.Contract do
     end
   end
 
+  @doc """
+    runs a contract and returns the action transaction, but doesnt's upload it to the blockchain
+  """
+  def run_contract(wallet, last_tx, input, method, contract, run_contract_fn, ar_node \\ @default_node) do
+    case run_contract_fn.(wallet["n"], input, contract["state"], method, contract["src"]) do
+      {:ok, new_state} -> {:ok, create_action(wallet, last_tx, new_state, contract["id"], input, method, ar_node)}
+      other -> other
+    end
+  end
+
+  defp create_action(wallet, last_tx, state, contract_id, input, method, ar_node) do
+    bin_state = Jason.encode!(state)
+    HttpApi.create_data_transaction(bin_state, wallet, last_tx, "application/json", action_tags(contract_id, input, method), ar_node)
+  end
+
   defp save_action(wallet, state, contract_id, input, method, ar_node) do
     bin_state = Jason.encode!(state)
     HttpApi.upload_data(bin_state, wallet, "application/json", action_tags(contract_id, input, method), ar_node)

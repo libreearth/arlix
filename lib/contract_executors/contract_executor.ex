@@ -2,6 +2,7 @@ defmodule Arlix.ContractExecutor do
   use GenServer
 
   alias Arlix.Contract
+  alias Arlix.TransactionSaver
 
   @remote_node_code """
   Process.register(self(), :contract_executor);\
@@ -24,13 +25,13 @@ defmodule Arlix.ContractExecutor do
   end;\
   loop.(loop)
   """
-  def start_link({node_name, _contract} = param) do
+
+  def start_link({node_name, _contract, _saver_pid} = param) do
     GenServer.start_link(__MODULE__, param, name: process_name(node_name))
   end
 
-
-  def init({node_name, %{"src" => _src, "state" => _init_state} = contract}) do
-    spawn_executor(node_name, contract)
+  def init({node_name, %{"src" => _src, "state" => _init_state} = contract, saver_pid}) do
+    spawn_executor(node_name, contract, saver_pid)
   end
 
   def handle_call({:execute_contract, owner, method, input}, _from, state) do
@@ -50,12 +51,15 @@ defmodule Arlix.ContractExecutor do
     run_contract_fn = fn owner_pub_key, input, contract_state, method, _source_txt ->
       run_contract(state.child_node, owner_pub_key, method, input, contract_state)
     end
+    pub_key = wallet["n"]
+    last_tx = last_action_id_by_pub_key(state, pub_key)
     {reply, new_state} =
-      case Contract.run_and_save_contract(wallet, input, method, state.contract, run_contract_fn) do
+      case Contract.run_contract(wallet, last_tx, input, method, state.contract, run_contract_fn) do
         {:ok, %{"id" => action_id, "data" => data_encoded} = tx} ->
+          TransactionSaver.queue_transaction(state.saver_pid, tx)
           contract_state = Base.url_decode64!(data_encoded, padding: false) |> Jason.decode!()
           new_contract = state.contract |> Map.put("state", contract_state) |> Map.put("last_action_id", action_id)
-          {tx, state |> Map.put(:contract, new_contract) |> Map.put(:last_evaluated_action_id, action_id)}
+          {tx, state |> Map.put(:contract, new_contract) |> set_last_evaluated_action_id(action_id, pub_key)}
         other -> {other, state}
       end
     {:reply, reply, new_state}
@@ -79,7 +83,7 @@ defmodule Arlix.ContractExecutor do
   end
 
   def handle_info({:DOWN, _ref, :process, _object, _reason}, state) do
-    case spawn_executor(state.node_name, state.original_contract) do
+    case spawn_executor(state.node_name, state.original_contract, state.saver_pid) do
       {:ok, new_state} -> {:noreply, new_state}
       _ -> {:stop, "Something went wrong with the executor and couldn´t be respawned!!"}
     end
@@ -132,7 +136,17 @@ defmodule Arlix.ContractExecutor do
 
   defp machine_name(), do: node() |> Atom.to_string() |> String.split("@") |> Enum.at(1)
 
-  defp spawn_executor(node_name, %{"src" => src, "state" => _init_state} = contract) do
+  defp last_action_id_by_pub_key(state, pub_key) do
+    Map.get(state.last_action_ids_by_pub_key, pub_key)
+  end
+
+  defp set_last_evaluated_action_id(state, action_id, pub_key) do
+    state
+    |> Map.put(:last_evaluated_action_id, action_id)
+    |> Map.put(:last_action_ids_by_pub_key, Map.put(state.last_action_ids_by_pub_key, pub_key, action_id))
+  end
+
+  defp spawn_executor(node_name, %{"src" => src, "state" => _init_state} = contract, saver_pid) do
     elixir_path = System.find_executable("elixir")
     executor_node = "#{node_name}@#{machine_name()}"
     child_node = {:contract_executor, String.to_atom(executor_node)}
@@ -148,7 +162,9 @@ defmodule Arlix.ContractExecutor do
           node_port: port,
           original_contract: contract,
           contract: contract,
-          last_evaluated_action_id: contract["id"]
+          last_evaluated_action_id: contract["id"],
+          last_action_ids_by_pub_key: %{},
+          saver_pid: saver_pid
         }
         case calculate_last_contract_state(status) do
           {:reply, _new_contract, new_status} -> {:ok, new_status}
