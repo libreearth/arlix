@@ -161,7 +161,7 @@ defmodule Arlix.Contract do
 
   defp create_action(wallet, last_tx, state, contract_id, input, method, ar_node) do
     bin_state = Jason.encode!(state)
-    HttpApi.create_data_transaction(bin_state, wallet, last_tx, "application/json", action_tags(contract_id, input, method), ar_node)
+    Transaction.create_data_transaction(bin_state, wallet, last_tx, "application/json", action_tags(contract_id, input, method), ar_node)
   end
 
   defp save_action(wallet, state, contract_id, input, method, ar_node) do

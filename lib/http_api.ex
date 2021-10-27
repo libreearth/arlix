@@ -1,9 +1,12 @@
 defmodule Arlix.HttpApi do
-  import Arlix.Tx
   alias Arlix.Wallet
   alias Arlix.Transaction
 
   @default_node "https://arweave.net"
+
+  def default_node() do
+    @default_node
+  end
 
   @doc """
   Gets data upload price of a size of `size_bytes`
@@ -49,40 +52,8 @@ defmodule Arlix.HttpApi do
   Returns a map with the transaction fields
   """
   def upload_data(data, %{} = wallet_map, content_type, tags \\ [], ar_node \\ @default_node) do
-    create_data_transaction(data, wallet_map, nil, content_type, tags, ar_node)
+    Transaction.create_data_transaction(data, wallet_map, nil, content_type, tags, ar_node)
     |> post_transaction(ar_node)
-  end
-
-  @doc """
-    Creates and sing a data transaction with the given information
-  """
-  def create_data_transaction(data, wallet_map, last_tx, content_type, tags \\ [], ar_node \\ @default_node)
-
-  def create_data_transaction(data, %{} = wallet_map, nil, content_type, tags, ar_node) do
-    last_tx = get_wallet_last_tx!(wallet_map, ar_node)
-    create_data_transaction(data, wallet_map, last_tx, content_type, tags, ar_node)
-  end
-
-
-  def create_data_transaction(data, %{} = wallet_map, last_tx, content_type, tags, ar_node) do
-    price = get_data_tx_price!(byte_size(data), ar_node)
-    pub = wallet_map["n"] |> Base.url_decode64!(padding: false)
-    priv = wallet_map["d"] |> Base.url_decode64!(padding: false)
-    build_and_sign_data_transaction(data, price, last_tx, content_type, priv, pub, tags)
-  end
-
-  @doc """
-    Creates and sing a data transaction with the given information
-  """
-  def build_and_sign_data_transaction(data, price, last_tx, content_type, priv, pub, tags \\ []) do
-    Transaction.new(data, price, decode_last_tx(last_tx))
-    |> set_tags([{"Content-Type", content_type}]++tags)
-    |> Transaction.sign(priv,pub)
-    |> Transaction.to_map()
-  end
-
-  defp decode_last_tx(last_tx) do
-    Base.url_decode64!(last_tx, padding: false)
   end
 
   def post_transaction(tx_map, ar_node \\ @default_node) do
@@ -94,10 +65,6 @@ defmodule Arlix.HttpApi do
         end
        _ -> {:error, "http error"}
     end
-  end
-
-  defp set_tags(transaction, tags) do
-    tx(transaction, tags: tags)
   end
 
   @doc """
