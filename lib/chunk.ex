@@ -1,4 +1,4 @@
-defmodule Chunks do
+defmodule Arlix.Chunk do
   @doc """
   Data tree node of the v2 transactions to elixir map
     # id,
@@ -24,11 +24,45 @@ defmodule Chunks do
 
   @doc """
   Data tree create chunks
+
+  Returns a list of this map:
+  %{
+  "data_root" => "<Base64URL encoded data merkle root>",
+  "data_size" => "a number, the size of transaction in bytes",
+  "data_path" => "<Base64URL encoded inclusion proof>",
+  "chunk" => "<Base64URL encoded data chunk>",
+  "offset" => "<a number from [start_offset, start_offset + chunk size), relative to other chunks>"
+  }
   """
-  def data_tree_to_chunks(data_tree) do
+  def data_tree_to_chunks(data_tree, merkle_root_b64, tx_size) do
     data_tree
     |> Enum.filter(& elem(&1, 2)== :leaf)
-    |> Enum.map(& elem(&1, 3))
+    |> Enum.map(&data_tree_node_to_map/1)
+    |> Enum.reduce({[],0}, fn node, {chunks, offset} ->
+        chunk = node_to_chunk(node, data_tree, merkle_root_b64, tx_size, offset)
+        {chunks++[chunk], offset + byte_size(node.data)}
+      end)
+    |> elem(0)
+  end
+
+  @doc """
+  Data tree node to a chunk
+  %{
+    "data_root" => "<Base64URL encoded data merkle root>",
+    "data_size" => "a number, the size of transaction in bytes",
+    "data_path" => "<Base64URL encoded inclusion proof>",
+    "chunk" => "<Base64URL encoded data chunk>",
+    "offset" => "<a number from [start_offset, start_offset + chunk size), relative to other chunks>"
+  }
+  """
+  def node_to_chunk(node, tree, merkle_root_b64, tx_size, offset) do
+    %{
+      "data_root" => merkle_root_b64,
+      "data_size" => tx_size,
+      "data_path" => generate_data_path(tree, root_id(tree), node.id) |> Base.url_encode64(padding: false),
+      "chunk" => Base.url_encode64(node.data, padding: false),
+      "offset" => offset
+    }
   end
 
   def root_id(data_tree) do

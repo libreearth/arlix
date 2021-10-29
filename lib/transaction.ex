@@ -60,6 +60,11 @@ defmodule Arlix.Transaction do
   """
   def create_v2_data_transaction(data, wallet_map, last_tx, content_type, tags \\ [], ar_node \\ @default_node)
 
+  def create_v2_data_transaction(data, %{} = wallet_map, nil, content_type, tags, ar_node) do
+    last_tx = Arlix.HttpApi.get_wallet_last_tx!(wallet_map, ar_node)
+    create_v2_data_transaction(data, wallet_map, last_tx, content_type, tags, ar_node)
+  end
+
   def create_v2_data_transaction(data, %{} = wallet_map, last_tx, content_type, tags, ar_node) do
     price = Arlix.HttpApi.get_data_tx_price!(byte_size(data), ar_node)
     pub = wallet_map["n"] |> Base.url_decode64!(padding: false)
